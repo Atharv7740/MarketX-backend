@@ -26,8 +26,12 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
-
-app.use(cors({ origin: 'http://localhost:5173', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'] }));
+app.use(cors({ 
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'] 
+}
+));
 
 const PORT = process.env.PORT || 5000;
 
