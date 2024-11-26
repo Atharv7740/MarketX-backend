@@ -6,8 +6,13 @@ const authRoutes = require('./src/routes/authRoutes');
 const shopRoutes = require('./src/routes/shopRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const serviceRoutes = require('./src/routes/serviceRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const searchRoutes = require('./src/routes/searchRoutes');
+const orderRoutes = require('./src/routes/orderRoutes'); 
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+const WebSocket = require('ws');
 
 dotenv.config();
 
@@ -22,31 +27,39 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:5173', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }));
 
-// Preflight request handler
 app.options('*', cors());
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
 
-// Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Route middleware
 app.use('/api/auth', authRoutes);
-app.use('/api/shopkeeper', shopRoutes);
+app.use('/api/shops', shopRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api', orderRoutes); // Ensure this line is added
+
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+  console.log('New WebSocket connection');
+
+  ws.on('message', (message) => {
+    console.log('Received:', message);
+  });
+
+  ws.on('close', () => {
+    console.log('WebSocket connection closed');
+  });
+});
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

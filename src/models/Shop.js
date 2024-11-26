@@ -1,16 +1,15 @@
 const mongoose = require('mongoose');
 
-const ShopSchema = new mongoose.Schema({
+const shopSchema = mongoose.Schema({
   shopName: {
     type: String,
     required: true,
   },
   shopImage: {
-    type: String, // Store as Base64 string
-    required: true,
+    type: String,
   },
-  bannerImage: {
-    type: String, // Store as Base64 string
+  bannerImage: { // Add bannerImage field
+    type: String,
   },
   shopLocation: {
     type: String,
@@ -18,19 +17,22 @@ const ShopSchema = new mongoose.Schema({
   },
   shopTiming: {
     type: String,
-    required: true,
   },
   shopCategory: {
     type: String,
-    required: true,
   },
   shopkeeperId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
     required: true,
+    ref: 'User',
   },
 }, {
   timestamps: true,
 });
 
-module.exports = mongoose.model('Shop', ShopSchema);
+// Create an index on shopkeeperId to improve query performance
+shopSchema.index({ shopkeeperId: 1 });
+
+const Shop = mongoose.model('Shop', shopSchema);
+
+module.exports = Shop;

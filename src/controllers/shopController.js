@@ -1,17 +1,16 @@
+const fs = require('fs');
+const path = require('path');
 const Shop = require('../models/Shop');
-const mongoose = require('mongoose');
-
-// Function to remove old image data
-const removeImage = (imageBase64) => {
-  // Since we're using Base64 images, we don't need to delete files from the filesystem.
-  // Simply remove the old Base64 string.
-  return null;
-};
+const User = require('../models/User');
 
 const createShop = async (req, res) => {
   try {
     const { shopName, shopLocation, shopTiming, shopCategory, shopImage } = req.body;
     const shopkeeperId = req.user.id;
+
+    if (!shopName || !shopLocation || !shopCategory || !shopImage) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
 
     const newShop = new Shop({
       shopName,
@@ -32,8 +31,8 @@ const createShop = async (req, res) => {
 
 const getShops = async (req, res) => {
   try {
-    const shopkeeperId = req.user.id;
-    const shops = await Shop.find({ shopkeeperId });
+    const shopkeeperId = req.user.id; // Get shopkeeper ID from the authenticated user
+    const shops = await Shop.find({ shopkeeperId }).populate('shopkeeperId', 'name'); // Populate shopkeeper's name
     res.status(200).json(shops);
   } catch (error) {
     console.error('Error fetching shops:', error);
@@ -43,7 +42,7 @@ const getShops = async (req, res) => {
 
 const getShopById = async (req, res) => {
   try {
-    const shop = await Shop.findById(req.params.id);
+    const shop = await Shop.findById(req.params.id).populate('shopkeeperId', 'name'); // Populate shopkeeper's name
     if (!shop) {
       return res.status(404).json({ message: 'Shop not found' });
     }
@@ -61,10 +60,14 @@ const uploadBannerImage = async (req, res) => {
       return res.status(404).json({ message: 'Shop not found' });
     }
 
-    // Remove old banner image
-    shop.bannerImage = removeImage(shop.bannerImage);
+    // Remove the previous banner image file if it exists
+    if (shop.bannerImage) {
+      const previousImagePath = path.join(__dirname, '..', 'uploads', shop.bannerImage);
+      if (fs.existsSync(previousImagePath)) {
+        fs.unlinkSync(previousImagePath);
+      }
+    }
 
-    // Save new banner image
     shop.bannerImage = req.body.bannerImage;
     await shop.save();
 
@@ -82,10 +85,14 @@ const uploadShopImage = async (req, res) => {
       return res.status(404).json({ message: 'Shop not found' });
     }
 
-    // Remove old shop image
-    shop.shopImage = removeImage(shop.shopImage);
+    // Remove the previous shop image file if it exists
+    if (shop.shopImage) {
+      const previousImagePath = path.join(__dirname, '..', 'uploads', shop.shopImage);
+      if (fs.existsSync(previousImagePath)) {
+        fs.unlinkSync(previousImagePath);
+      }
+    }
 
-    // Save new shop image
     shop.shopImage = req.body.shopImage;
     await shop.save();
 
@@ -96,4 +103,14 @@ const uploadShopImage = async (req, res) => {
   }
 };
 
-module.exports = { createShop, getShops, getShopById, uploadBannerImage, uploadShopImage };
+const getNearbyShops = async (req, res) => {
+  try {
+    const shops = await Shop.find().populate('shopkeeperId', 'name'); // Populate shopkeeper's name
+    res.status(200).json(shops);
+  } catch (error) {
+    console.error('Error fetching nearby shops:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = { createShop, getShops, getShopById, uploadBannerImage, uploadShopImage, getNearbyShops };

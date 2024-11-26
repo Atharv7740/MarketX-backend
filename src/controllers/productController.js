@@ -1,4 +1,3 @@
-
 const Product = require('../models/Product');
 
 const createProduct = async (req, res) => {
@@ -22,8 +21,6 @@ const createProduct = async (req, res) => {
   }
 };
 
-
-
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -46,11 +43,6 @@ const updateProduct = async (req, res) => {
 
     const { name, category, quantity, price, image } = req.body;
 
-    // Delete old product image if a new image is uploaded
-    if (image && product.image !== image) {
-      product.image = null;
-    }
-
     product.name = name;
     product.category = category;
     product.quantity = quantity;
@@ -65,9 +57,6 @@ const updateProduct = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
-
-
-
 
 const deleteProduct = async (req, res) => {
   try {
@@ -85,10 +74,16 @@ const deleteProduct = async (req, res) => {
 };
 
 
+
 const getProducts = async (req, res) => {
   try {
-    const shopId = req.query.shopId; // Get the shopId from query parameters
-    const products = await Product.find({ shopId });
+    const { shopId } = req.query;
+    let products;
+    if (shopId) {
+      products = await Product.find({ shopId });
+    } else {
+      products = await Product.find();
+    }
     res.status(200).json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -98,5 +93,15 @@ const getProducts = async (req, res) => {
 
 
 
-module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct };
 
+const getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ featured: true });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching featured products:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts };

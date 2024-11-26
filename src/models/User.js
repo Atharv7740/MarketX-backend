@@ -6,6 +6,8 @@ const userSchema = mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['buyer', 'shopkeeper', 'admin'], default: 'buyer' },
+  address: { type: String }, // Ensure address field is present
+  image: { type: String } // Ensure image field is present
 });
 
 // Hash password before saving
