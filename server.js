@@ -27,14 +27,12 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'https://market-x-backend.vercel.app'], // Add your Vercel URL here
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }));
 
 app.options('*', cors());
-
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/shops', shopRoutes);
@@ -43,6 +41,11 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api', orderRoutes); // Ensure this line is added
+
+// Root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the MarketX API');
+});
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
